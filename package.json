@@ -8,6 +8,7 @@
     "check": "tsc --noEmit",
     "build": "tsc",
     "start": "node .",
+    "db:gen": "prisma generate",
     "db:push": "prisma generate && prisma db push",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
