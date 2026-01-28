@@ -5,13 +5,11 @@ import { loginService, registerService } from "./auth.service";
 export const registerController = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const validatedData = UserSchema.parse(req.body)
-        const token = await registerService(validatedData)
+        const data = await registerService(validatedData)
         res.status(201).json({
             success: true,
             message: "Registration successfull",
-            data: {
-                token
-            }
+            data
         })
     } catch (error) {
         next(error)

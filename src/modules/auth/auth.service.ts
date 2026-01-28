@@ -7,14 +7,14 @@ import { LoginSchema, UserSchema } from "./auth.schema";
 import { ApiError } from "../../utils/ApiError";
 
 export const registerService = async (data: z.infer<typeof UserSchema>) => {
-    let token
+    let token, userObj
     const { tutorProfile, ...userData } = data
     userData.password = await bcrypt.hash(userData.password, 10)
     await prisma.$transaction(async tx => {
         const user = await tx.user.create({
             data: userData
         })
-        if (tutorProfile) {
+        if (userData.role === "TUTOR" && tutorProfile) {
             await tx.tutorProfile.create({
                 data: {
                     userId: user.id,
@@ -23,9 +23,19 @@ export const registerService = async (data: z.infer<typeof UserSchema>) => {
             })
         }
         token = jwt.sign({ userId: user.id, role: user.role }, AUTH_SECRET!, { expiresIn: "7d" })
+        userObj = {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            tutorProfile
+        }
     })
 
-    return token
+    return {
+        token,
+        user: userObj
+    }
 };
 
 export const loginService = async (data: z.infer<typeof LoginSchema>) => {
