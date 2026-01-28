@@ -6,7 +6,7 @@ import prisma from "../../lib/prisma";
 import { UserSchema } from "./auth.schema";
 
 export const registerService = async (data: z.infer<typeof UserSchema>) => {
-    let userId
+    let token
     const { tutorProfile, ...userData } = data
     userData.password = await bcrypt.hash(userData.password, 10)
     await prisma.$transaction(async tx => {
@@ -21,10 +21,9 @@ export const registerService = async (data: z.infer<typeof UserSchema>) => {
                 }
             })
         }
-        userId = user.id
+        token = jwt.sign({ userId: user.id, role: user.role }, AUTH_SECRET!, { expiresIn: "7d" })
     })
 
-    const token = jwt.sign({ userId: userId }, AUTH_SECRET!, { expiresIn: "7d" })
     return token
 };
 
