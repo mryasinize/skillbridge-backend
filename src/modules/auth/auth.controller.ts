@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
-import { UserSchema } from "./auth.schema";
-import { registerService } from "./auth.service";
+import { LoginSchema, UserSchema } from "./auth.schema";
+import { loginService, registerService } from "./auth.service";
 
 export const registerController = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -18,9 +18,15 @@ export const registerController = async (req: Request, res: Response, next: Next
     }
 };
 
-export const loginController = (req: Request, res: Response, next: NextFunction) => {
+export const loginController = async (req: Request, res: Response, next: NextFunction) => {
     try {
-
+        const validatedData = LoginSchema.parse(req.body)
+        const data = await loginService(validatedData)
+        res.json({
+            success: true,
+            message: "Login successfull",
+            data
+        })
     } catch (error) {
         next(error)
     }

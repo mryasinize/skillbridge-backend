@@ -3,7 +3,8 @@ import jwt from "jsonwebtoken";
 import { z } from "zod";
 import { AUTH_SECRET } from "../../lib/env";
 import prisma from "../../lib/prisma";
-import { UserSchema } from "./auth.schema";
+import { LoginSchema, UserSchema } from "./auth.schema";
+import { ApiError } from "../../utils/ApiError";
 
 export const registerService = async (data: z.infer<typeof UserSchema>) => {
     let token
@@ -27,6 +28,37 @@ export const registerService = async (data: z.infer<typeof UserSchema>) => {
     return token
 };
 
-export const loginService = () => { };
+export const loginService = async (data: z.infer<typeof LoginSchema>) => {
+    const { email, password } = data
+
+    const user = await prisma.user.findUnique({
+        where: { email: email }
+    })
+
+    if (!user) {
+        throw new ApiError(401, "Invalid email or password")
+    }
+
+    if (user.isBanned) {
+        throw new ApiError(403, "Your account has been banned. Please contact admin")
+    }
+
+    const isPasswordMatch = await bcrypt.compare(password, user.password)
+
+    if (!isPasswordMatch) {
+        throw new ApiError(401, "Invalid email or password")
+    }
+
+    const token = jwt.sign({ userId: user.id, role: user.role }, AUTH_SECRET!, { expiresIn: '7d' })
+    return {
+        token,
+        user: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role
+        }
+    }
+};
 
 export const changePasswordService = () => { };
