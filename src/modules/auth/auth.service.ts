@@ -81,4 +81,21 @@ export const loginService = async (data: z.infer<typeof LoginSchema>) => {
     }
 };
 
-export const changePasswordService = () => { };
+export const changePasswordService = async (userId: string, data: z.infer<typeof PasswordChangeSchema>) => {
+    const user = await prisma.user.findUnique({ where: { id: userId } })
+    if (!user) throw new ApiError(400, "User doesn't exist")
+
+    const isPasswordMatch = await bcrypt.compare(data.oldPassword, user.password)
+    if (!isPasswordMatch) throw new ApiError(401, "Incorrect password")
+
+    const newHashedPassword = await bcrypt.hash(data.newPassword, 10)
+
+    await prisma.user.update({
+        data: {
+            password: newHashedPassword
+        },
+        where: {
+            id: userId
+        }
+    })
+};
