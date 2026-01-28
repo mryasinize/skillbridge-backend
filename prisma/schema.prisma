@@ -38,7 +38,7 @@ model TutorProfile {
   hourlyRate        Float
   rating            Float              @default(0.0)
   userId            String             @unique
-  user              User               @relation(fields: [userId], references: [id])
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   categoryId        String
   category          Category           @relation(fields: [categoryId], references: [id])
   bookings          Booking[]

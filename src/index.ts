@@ -5,8 +5,10 @@ import userRouter from './modules/users/user.routes'
 import tutorRouter from './modules/tutors/tutor.routes'
 import bookingRouter from './modules/bookings/booking.routes'
 import reviewRouter from './modules/reviews/review.routes'
+import { globalErrorHandler } from './middlewares/error'
+import { PORT } from './lib/env'
 
-const PORT = process.env['PORT'] || 5000
+const port = PORT || 5000
 
 const server = express()
 server.use('/api', authRouter)
@@ -15,7 +17,8 @@ server.use('/api', userRouter)
 server.use('/api', tutorRouter)
 server.use('/api', bookingRouter)
 server.use('/api', reviewRouter)
+server.use(globalErrorHandler)
 
-server.listen(PORT, () => {
-    console.log(`[SERVER IS RUNNING ON PORT ${PORT}]`);
+server.listen(port, () => {
+    console.log(`[SERVER IS RUNNING ON PORT ${port}]`);
 })
