@@ -11,6 +11,7 @@ import { PORT } from './lib/env'
 const port = PORT || 5000
 
 const server = express()
+server.use(express.json())
 server.use('/api', authRouter)
 server.use('/api', adminRouter)
 server.use('/api', userRouter)
