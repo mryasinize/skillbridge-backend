@@ -1,5 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
-import { getUserProfileService } from "./user.service";
+import { getUserProfileService, updateUserProfileService } from "./user.service";
+import { UpdateUserSchema, UserSchema } from "../auth/auth.schema";
+import type { User } from "../../generated/prisma/client";
 
 export const getUserProfileController = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -15,9 +17,17 @@ export const getUserProfileController = async (req: Request, res: Response, next
     }
 };
 
-export const updateUserProfileController = (req: Request, res: Response, next: NextFunction) => {
+export const updateUserProfileController = async (req: Request, res: Response, next: NextFunction) => {
     try {
-
+        const validatedData = UpdateUserSchema.parse(req.body) as Partial<User>
+        const result = await updateUserProfileService(req.user!.userId, validatedData)
+        res.json({
+            success: true,
+            message: "User updated successfully",
+            data: {
+                user: result
+            }
+        })
     } catch (error) {
         next(error)
     }

@@ -13,6 +13,8 @@ export const UserSchema = z.object({
     }).optional()
 })
 
+export const UpdateUserSchema = UserSchema.omit({ tutorProfile: true, password: true }).partial()
+
 export const LoginSchema = z.object({
     email: z.email(),
     password: z.string().min(6)
