@@ -19,12 +19,16 @@ export const registerService = async (data: z.infer<typeof UserSchema>) => {
     userData.password = hashedPassword
 
     const result = await prisma.$transaction(async tx => {
+        let tutor
         const user = await tx.user.create({
-            data: userData
+            data: userData,
+            include: {
+                tutorProfile: userData.role === "TUTOR"
+            }
         })
 
         if (userData.role === "TUTOR" && tutorProfile) {
-            await tx.tutorProfile.create({
+            tutor = await tx.tutorProfile.create({
                 data: {
                     userId: user.id,
                     ...tutorProfile
@@ -36,7 +40,7 @@ export const registerService = async (data: z.infer<typeof UserSchema>) => {
             name: user.name,
             email: user.email,
             role: user.role,
-            tutorProfile
+            tutorProfile: tutor
         }
     })
 
