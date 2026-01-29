@@ -2,6 +2,11 @@ import prisma from "../../lib/prisma";
 
 export const getTutorsService = async () => {
     const tutors = await prisma.tutorProfile.findMany({
+        where: {
+            user: {
+                isBanned: false
+            }
+        },
         include: {
             user: true,
             category: true,
