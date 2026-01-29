@@ -3,7 +3,15 @@ import { getTutorByIdService, getTutorsService } from "./tutor.service";
 
 export const getTutorsController = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const result = await getTutorsService()
+        const filters = {
+            categoryId: req.query.categoryId as string,
+            minPrice: req.query.minPrice ? Number(req.query.minPrice) : undefined,
+            maxPrice: req.query.maxPrice ? Number(req.query.maxPrice) : undefined,
+            searchTerm: req.query.searchTerm as string,
+        }
+
+        const result = await getTutorsService(filters)
+
         res.json({
             success: true,
             data: result

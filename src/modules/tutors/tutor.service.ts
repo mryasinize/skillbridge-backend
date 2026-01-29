@@ -1,13 +1,36 @@
+import type { TutorProfileWhereInput } from "../../generated/prisma/models";
 import prisma from "../../lib/prisma";
+import type { QueryFilter } from "../../types/filters";
 import { ApiError } from "../../utils/ApiError";
 
-export const getTutorsService = async () => {
+export const getTutorsService = async (filters: QueryFilter) => {
+    const { categoryId, minPrice, maxPrice, searchTerm } = filters
+
+    const where: TutorProfileWhereInput = {
+        user: { isBanned: false }
+    }
+
+    if (categoryId) {
+        where.categoryId = categoryId
+    }
+
+    if (minPrice || maxPrice) {
+        where.hourlyRate = {
+            gte: minPrice || 0,
+            lte: maxPrice || 9999999
+        }
+    }
+
+    if (searchTerm) {
+        where.OR = [
+            { user: { name: { contains: searchTerm, mode: 'insensitive' } } },
+            { user: { email: { contains: searchTerm, mode: 'insensitive' } } },
+            { bio: { contains: searchTerm, mode: 'insensitive' } }
+        ]
+    }
+
     const tutors = await prisma.tutorProfile.findMany({
-        where: {
-            user: {
-                isBanned: false
-            }
-        },
+        where,
         include: {
             user: true,
             category: true,
