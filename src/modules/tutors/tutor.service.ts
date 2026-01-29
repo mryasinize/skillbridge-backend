@@ -95,3 +95,8 @@ export const deleteAvailabilitySlotService = async (userId: string, slotId: stri
 
     await prisma.availabilitySlot.delete({ where: { id: slotId } })
 };
+
+export const getCategoriesService = async () => {
+    const categories = await prisma.category.findMany()
+    return categories
+};  

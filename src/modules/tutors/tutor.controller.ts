@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
-import { getTutorByIdService, getTutorsService, createAvailabilitySlotService, deleteAvailabilitySlotService, updateTutorProfileService } from "./tutor.service";
+import { getTutorByIdService, getTutorsService, createAvailabilitySlotService, deleteAvailabilitySlotService, updateTutorProfileService, getCategoriesService } from "./tutor.service";
 import { AvailabilitySchema, UpdateTutorProfileSchema } from "./tutor.schema";
 import type { TutorProfile } from "../../generated/prisma/client";
 
@@ -70,6 +70,18 @@ export const deleteAvailabilitySlotController = async (req: Request, res: Respon
         res.json({
             success: false,
             message: "Slot deleted successfully"
+        })
+    } catch (error) {
+        next(error)
+    }
+};
+
+export const getCategoriesController = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const result = await getCategoriesService()
+        res.json({
+            success: true,
+            data: result
         })
     } catch (error) {
         next(error)
