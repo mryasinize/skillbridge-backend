@@ -1,8 +1,15 @@
 import type { NextFunction, Request, Response } from "express";
+import { getUserProfileService } from "./user.service";
 
-export const getUserProfileController = (req: Request, res: Response, next: NextFunction) => {
+export const getUserProfileController = async (req: Request, res: Response, next: NextFunction) => {
     try {
-
+        const result = await getUserProfileService(req.user!.userId)
+        res.json({
+            success: true,
+            data: {
+                user: result
+            }
+        })
     } catch (error) {
         next(error)
     }
