@@ -55,9 +55,10 @@ model AvailabilitySlot {
 }
 
 model Category {
-  id     String         @id @default(uuid())
-  name   String
-  tutors TutorProfile[]
+  id       String         @id @default(uuid())
+  name     String
+  tutors   TutorProfile[]
+  bookings Booking[]
 }
 
 model Booking {
@@ -66,6 +67,8 @@ model Booking {
   studentId      String
   tutor          TutorProfile  @relation(fields: [tutorProfileId], references: [id])
   tutorProfileId String
+  category       Category      @relation(fields: [categoryId], references: [id])
+  categoryId     String
   startTime      DateTime
   endTime        DateTime
   status         BookingStatus @default(CONFIRMED)
