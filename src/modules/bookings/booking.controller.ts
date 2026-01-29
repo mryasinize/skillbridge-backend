@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
-import { createBookingsService } from "./booking.service";
+import { createBookingsService, getBookingsService } from "./booking.service";
 import { BookingSchema } from "./booking.schema";
 
 export const createBookingsController = async (req: Request, res: Response, next: NextFunction) => {
@@ -15,9 +15,13 @@ export const createBookingsController = async (req: Request, res: Response, next
     }
 };
 
-export const getBookingsController = (req: Request, res: Response, next: NextFunction) => {
+export const getBookingsController = async (req: Request, res: Response, next: NextFunction) => {
     try {
-
+        const result = await getBookingsService()
+        res.json({
+            success: true,
+            data: result
+        })
     } catch (error) {
         next(error)
     }
