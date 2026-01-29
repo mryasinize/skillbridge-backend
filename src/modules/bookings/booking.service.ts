@@ -1,6 +1,8 @@
 import type z from "zod";
-import type { BookingSchema } from "./booking.schema";
+import type { BookingSchema, UpdateBookingSchema } from "./booking.schema";
 import prisma from "../../lib/prisma";
+import { ApiError } from "../../utils/ApiError";
+import type { JwtPayload } from "../../types/jwtPayload";
 
 export const createBookingsService = async (data: z.infer<typeof BookingSchema>) => {
     await prisma.booking.create({
@@ -32,4 +34,30 @@ export const getBookingsService = async () => {
     return bookings
 };
 
-export const changeBookingStatusService = () => { };
+export const changeBookingStatusService = async (user: JwtPayload, bookingId: string, data: z.infer<typeof UpdateBookingSchema>) => {
+    const booking = await prisma.booking.findUnique({ where: { id: bookingId } })
+    if (!booking) throw new ApiError(400, "Invalid Booking ID")
+
+    if (booking.studentId !== user.userId && booking.tutorProfileId !== user.userId) {
+        throw new ApiError(401, "Cannot perform this action")
+    }
+
+    if (user.role === "STUDENT" && data.status !== "CANCELLED") {
+        throw new ApiError(401, "Cannot perform this action")
+    }
+
+    if (user.role === "TUTOR" && data.status !== "COMPLETED") {
+        throw new ApiError(401, "Cannot perform this action")
+    }
+
+    const result = await prisma.booking.update({
+        data: data,
+        where: {
+            id: bookingId
+        },
+        select: {
+            status: true
+        }
+    })
+    return result
+};
