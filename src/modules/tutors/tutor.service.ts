@@ -1,7 +1,10 @@
+import type z from "zod";
+import type { TutorProfile } from "../../generated/prisma/client";
 import type { TutorProfileWhereInput } from "../../generated/prisma/models";
 import prisma from "../../lib/prisma";
 import type { QueryFilter } from "../../types/filters";
 import { ApiError } from "../../utils/ApiError";
+import type { AvailabilitySchema } from "./tutor.schema";
 
 export const getTutorsService = async (filters: QueryFilter) => {
     const { categoryId, minPrice, maxPrice, searchTerm } = filters
@@ -60,10 +63,35 @@ export const getTutorByIdService = async (tutorProfileId: string) => {
     return tutor
 };
 
-export const updateTutorProfileService = () => { };
+export const updateTutorProfileService = async (userId: string, data: Partial<TutorProfile>) => {
+    const profile = await prisma.tutorProfile.update({
+        data: data,
+        where: { userId: userId }
+    })
+    return profile
+};
 
-export const updateTutorAvailabilityService = () => { };
+export const createAvailabilitySlotService = async (userId: string, data: z.infer<typeof AvailabilitySchema>) => {
+    const tutor = await prisma.tutorProfile.findUnique({ where: { userId: userId } })
+    await prisma.availabilitySlot.create({
+        data: {
+            tutorProfileId: tutor!.id,
+            ...data
+        }
+    })
+};
 
-export const deleteTutorAvailabilityService = () => { };
+export const deleteAvailabilitySlotService = async (userId: string, slotId: string) => {
+    const slot = await prisma.availabilitySlot.findUnique({
+        where: { id: slotId },
+        include: {
+            tutor: { select: { userId: true } }
+        }
+    })
 
-export const getCategoriesService = () => { };
+    if (!slot) throw new ApiError(404, "Slot doesn't exists")
+    if (slot.tutor.userId !== userId) throw new ApiError(401, "Cannot perform this action")
+    if (slot.isBooked) throw new ApiError(400, "Cannot delete already booked slot")
+
+    await prisma.availabilitySlot.delete({ where: { id: slotId } })
+};

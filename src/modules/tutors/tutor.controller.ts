@@ -1,5 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
-import { getTutorByIdService, getTutorsService } from "./tutor.service";
+import { getTutorByIdService, getTutorsService, createAvailabilitySlotService, deleteAvailabilitySlotService, updateTutorProfileService } from "./tutor.service";
+import { AvailabilitySchema, UpdateTutorProfileSchema } from "./tutor.schema";
+import type { TutorProfile } from "../../generated/prisma/client";
 
 export const getTutorsController = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -34,33 +36,41 @@ export const getTutorByIdController = async (req: Request, res: Response, next: 
     }
 };
 
-export const updateTutorProfileController = (req: Request, res: Response, next: NextFunction) => {
+export const updateTutorProfileController = async (req: Request, res: Response, next: NextFunction) => {
     try {
-
+        const validatedData = UpdateTutorProfileSchema.parse(req.body)
+        const result = await updateTutorProfileService(req.user!.userId, validatedData as TutorProfile)
+        res.json({
+            success: true,
+            message: "Profile updated successfully",
+            data: result
+        })
     } catch (error) {
         next(error)
     }
 };
 
-export const updateTutorAvailabilityController = (req: Request, res: Response, next: NextFunction) => {
+export const createAvailabilitySlotController = async (req: Request, res: Response, next: NextFunction) => {
     try {
-
+        const validatedData = AvailabilitySchema.parse(req.body)
+        await createAvailabilitySlotService(req.user!.userId, validatedData)
+        res.status(201).json({
+            success: true,
+            message: "Availability Slot Added"
+        })
     } catch (error) {
         next(error)
     }
 };
 
-export const deleteTutorAvailabilityController = (req: Request, res: Response, next: NextFunction) => {
+export const deleteAvailabilitySlotController = async (req: Request, res: Response, next: NextFunction) => {
     try {
-
-    } catch (error) {
-        next(error)
-    }
-};
-
-export const getCategoriesController = (req: Request, res: Response, next: NextFunction) => {
-    try {
-
+        const slotId = req.params.id as string
+        await deleteAvailabilitySlotService(req.user!.userId, slotId)
+        res.json({
+            success: false,
+            message: "Slot deleted successfully"
+        })
     } catch (error) {
         next(error)
     }
