@@ -1,8 +1,13 @@
 import type { NextFunction, Request, Response } from "express";
+import { getTutorsService } from "./tutor.service";
 
-export const getTutorsController = (req: Request, res: Response, next: NextFunction) => {
+export const getTutorsController = async (req: Request, res: Response, next: NextFunction) => {
     try {
-
+        const result = await getTutorsService()
+        res.json({
+            success: true,
+            data: result
+        })
     } catch (error) {
         next(error)
     }
