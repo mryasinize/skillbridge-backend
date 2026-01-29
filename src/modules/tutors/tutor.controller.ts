@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
-import { getTutorsService } from "./tutor.service";
+import { getTutorByIdService, getTutorsService } from "./tutor.service";
 
 export const getTutorsController = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -13,9 +13,14 @@ export const getTutorsController = async (req: Request, res: Response, next: Nex
     }
 };
 
-export const getTutorByIdController = (req: Request, res: Response, next: NextFunction) => {
+export const getTutorByIdController = async (req: Request, res: Response, next: NextFunction) => {
     try {
-
+        const tutorProfileId = req.params.id as string
+        const result = await getTutorByIdService(tutorProfileId)
+        res.json({
+            success: true,
+            data: result
+        })
     } catch (error) {
         next(error)
     }
