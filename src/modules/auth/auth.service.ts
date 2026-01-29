@@ -52,7 +52,11 @@ export const loginService = async (data: z.infer<typeof LoginSchema>) => {
     const { email, password } = data
 
     const user = await prisma.user.findUnique({
-        where: { email: email }
+        where: { email: email },
+        omit: {
+            password: false,
+            isBanned: false
+        }
     })
 
     if (!user) {
@@ -82,7 +86,13 @@ export const loginService = async (data: z.infer<typeof LoginSchema>) => {
 };
 
 export const changePasswordService = async (userId: string, data: z.infer<typeof PasswordChangeSchema>) => {
-    const user = await prisma.user.findUnique({ where: { id: userId } })
+    const user = await prisma.user.findUnique({
+        where: { id: userId },
+        omit: {
+            password: false,
+            isBanned: false
+        }
+    })
     if (!user) throw new ApiError(400, "User doesn't exist")
 
     const isPasswordMatch = await bcrypt.compare(data.oldPassword, user.password)
