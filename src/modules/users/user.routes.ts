@@ -5,6 +5,7 @@ import { authenticate } from "../../middlewares/authenticate";
 const userRouter = Router()
 
 userRouter.get('/user/profile', authenticate, controllers.getUserProfileController)
+userRouter.get('/user/stats', authenticate, controllers.getUserStatsController)
 userRouter.patch('/user/profile', authenticate, controllers.updateUserProfileController)
 
 export default userRouter 

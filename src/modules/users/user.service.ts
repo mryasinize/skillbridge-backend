@@ -20,6 +20,79 @@ export const getUserProfileService = async (userId: string) => {
     }
 };
 
+export const getUserStatsService = async (userId: string, role: string) => {
+    const now = new Date();
+
+    if (role === 'TUTOR') {
+        const tutor = await prisma.tutorProfile.findUnique({
+            where: { userId },
+            include: {
+                reviews: true,
+                bookings: { include: { student: true } }
+            }
+        });
+
+        if (!tutor) return null;
+
+        const myBookings = tutor.bookings;
+        const completedBookings = myBookings.filter(b => b.status === 'COMPLETED');
+
+        let totalHours = 0;
+        completedBookings.forEach(b => {
+            totalHours += (new Date(b.endTime).getTime() - new Date(b.startTime).getTime()) / (1000 * 60 * 60);
+        });
+
+        return {
+            totalStudents: new Set(myBookings.map(b => b.studentId)).size,
+            hoursTaught: Math.round(totalHours * 10) / 10,
+            totalEarnings: Math.round(totalHours * tutor.hourlyRate),
+            averageRating: tutor.reviews.length > 0 ? tutor.reviews.reduce((acc, r) => acc + r.rating, 0) / tutor.reviews.length : 0,
+            upcomingSessions: myBookings
+                .filter(b => b.status === 'CONFIRMED' && new Date(b.startTime) > now)
+                .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
+                .slice(0, 3)
+                .map(b => ({
+                    id: b.id,
+                    studentName: b.student.name,
+                    startTime: b.startTime,
+                    endTime: b.endTime
+                }))
+        };
+    }
+
+    if (role === 'STUDENT') {
+        const bookings = await prisma.booking.findMany({
+            where: { studentId: userId },
+            include: { tutor: { include: { user: true } }, category: true }
+        });
+
+        const completedBookings = bookings.filter(b => b.status === 'COMPLETED');
+        let totalHours = 0;
+        completedBookings.forEach(b => {
+            totalHours += (new Date(b.endTime).getTime() - new Date(b.startTime).getTime()) / (1000 * 60 * 60);
+        });
+
+        const nextSession = bookings
+            .filter(b => b.status === 'CONFIRMED' && new Date(b.startTime) > now)
+            .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())[0];
+
+        return {
+            activeBookings: bookings.filter(b => b.status === 'CONFIRMED').length,
+            completedHours: Math.round(totalHours * 10) / 10,
+            learningPoints: completedBookings.length * 50,
+            nextSession: nextSession ? {
+                id: nextSession.id,
+                title: nextSession.category?.name || "Tutoring Session",
+                tutorName: nextSession.tutor.user.name,
+                startTime: nextSession.startTime,
+                endTime: nextSession.endTime
+            } : null
+        };
+    }
+
+    return null;
+};
+
 export const updateUserProfileService = async (userId: string, data: Partial<User>) => {
     const user = await prisma.user.findUnique({ where: { id: userId } })
     if (!user) throw new ApiError(400, "User not found")
