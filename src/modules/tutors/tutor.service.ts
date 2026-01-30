@@ -59,7 +59,7 @@ export const getTutorByIdService = async (tutorProfileId: string) => {
             availabilitySlots: true
         }
     })
-    if (tutor) throw new ApiError(404, "Tutor not found")
+    if (!tutor) throw new ApiError(404, "Tutor not found")
     return tutor
 };
 
