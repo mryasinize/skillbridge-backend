@@ -6,12 +6,17 @@ import tutorRouter from './modules/tutors/tutor.routes'
 import bookingRouter from './modules/bookings/booking.routes'
 import reviewRouter from './modules/reviews/review.routes'
 import { globalErrorHandler } from './middlewares/error'
-import { PORT } from './lib/env'
+import { FRONTEND_URL, PORT } from './lib/env'
+import cors from "cors"
 
 const port = PORT || 5000
 
 const server = express()
 server.use(express.json())
+server.use(cors({
+    origin: FRONTEND_URL,
+    credentials: true,
+}))
 server.use('/api', authRouter)
 server.use('/api', adminRouter)
 server.use('/api', userRouter)
