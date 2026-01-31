@@ -73,9 +73,32 @@ export const updateTutorProfileService = async (userId: string, data: Partial<Tu
 
 export const createAvailabilitySlotService = async (userId: string, data: z.infer<typeof AvailabilitySchema>) => {
     const tutor = await prisma.tutorProfile.findUnique({ where: { userId: userId } })
+    if (!tutor) throw new ApiError(400, "Invalid User ID")
+
+    const slot = await prisma.availabilitySlot.findFirst({
+        where: {
+            tutorProfileId: tutor.id,
+            OR: [
+                {
+                    startTime: { lte: data.startTime },
+                    endTime: { gt: data.startTime },
+                },
+                {
+                    startTime: { lt: data.endTime },
+                    endTime: { gte: data.endTime },
+                },
+                {
+                    startTime: { gte: data.startTime },
+                    endTime: { lte: data.endTime },
+                }
+            ]
+        }
+    })
+    if (slot) throw new ApiError(409, "Conflict Detected: You already have a session scheduled during this time. Please pick a different slot.")
+
     await prisma.availabilitySlot.create({
         data: {
-            tutorProfileId: tutor!.id,
+            tutorProfileId: tutor.id,
             ...data
         }
     })
