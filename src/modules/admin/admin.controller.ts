@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
-import { analyticsService, getUsersService, moderateUserService } from "./admin.service";
+import { analyticsService, createCategoryService, deleteCategoryService, getUsersService, moderateUserService, updateCategoryService } from "./admin.service";
 
 export const analyticsController = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -33,6 +33,44 @@ export const moderateUserController = async (req: Request, res: Response, next: 
         res.json({
             success: true,
             message: "User has been moderated successfully"
+        })
+    } catch (error) {
+        next(error)
+    }
+};
+
+export const createCategoryController = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { name } = req.body
+        const result = await createCategoryService(name)
+        res.json({
+            success: true,
+            data: result
+        })
+    } catch (error) {
+        next(error)
+    }
+};
+
+export const updateCategoryController = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { name } = req.body
+        const result = await updateCategoryService(req.params.id as string, name)
+        res.json({
+            success: true,
+            data: result
+        })
+    } catch (error) {
+        next(error)
+    }
+};
+
+export const deleteCategoryController = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const result = await deleteCategoryService(req.params.id as string)
+        res.json({
+            success: true,
+            data: result
         })
     } catch (error) {
         next(error)

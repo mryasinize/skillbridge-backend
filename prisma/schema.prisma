@@ -38,8 +38,8 @@ model TutorProfile {
   hourlyRate        Float
   userId            String             @unique
   user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  categoryId        String
-  category          Category           @relation(fields: [categoryId], references: [id])
+  categoryId        String?
+  category          Category?          @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   bookings          Booking[]
   reviews           Review[]
   availabilitySlots AvailabilitySlot[]
@@ -67,8 +67,8 @@ model Booking {
   studentId      String
   tutor          TutorProfile  @relation(fields: [tutorProfileId], references: [id])
   tutorProfileId String
-  category       Category      @relation(fields: [categoryId], references: [id])
-  categoryId     String
+  category       Category?     @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  categoryId     String?
   startTime      DateTime
   endTime        DateTime
   status         BookingStatus @default(CONFIRMED)

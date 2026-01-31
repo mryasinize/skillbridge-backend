@@ -1,7 +1,6 @@
-import type { Request, Response, NextFunction } from "express";
+import { Role } from "../../generated/prisma/enums";
 import prisma from "../../lib/prisma";
 import { ApiError } from "../../utils/ApiError";
-import { Role } from "../../generated/prisma/enums";
 
 export const analyticsService = async () => {
     const [studentCount, tutorCount, bookingCount] = await Promise.all([
@@ -49,4 +48,34 @@ export const moderateUserService = async (userId: string, action: "BAN" | "UNBAN
             id: userId
         }
     })
+};
+
+export const createCategoryService = async (name: string) => {
+    const category = await prisma.category.create({
+        data: {
+            name
+        }
+    })
+    return category
+};
+
+export const updateCategoryService = async (id: string, name: string) => {
+    const category = await prisma.category.update({
+        data: {
+            name
+        },
+        where: {
+            id
+        }
+    })
+    return category
+};
+
+export const deleteCategoryService = async (id: string) => {
+    const category = await prisma.category.delete({
+        where: {
+            id
+        }
+    })
+    return category
 };
