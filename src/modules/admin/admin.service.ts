@@ -32,6 +32,9 @@ export const getUsersService = async (userId: string) => {
         },
         omit: {
             isBanned: false
+        },
+        orderBy: {
+            createdAt: "desc"
         }
     })
     return users
