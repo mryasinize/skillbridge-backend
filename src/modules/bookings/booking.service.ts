@@ -26,9 +26,11 @@ export const getBookingsService = async () => {
             student: true,
             tutor: {
                 include: {
-                    user: true
+                    user: true,
+                    reviews: true
                 }
             },
+            category: true
         }
     })
     return bookings
@@ -38,15 +40,18 @@ export const changeBookingStatusService = async (user: JwtPayload, bookingId: st
     const booking = await prisma.booking.findUnique({ where: { id: bookingId } })
     if (!booking) throw new ApiError(400, "Invalid Booking ID")
 
-    if (booking.studentId !== user.userId && booking.tutorProfileId !== user.userId) {
-        throw new ApiError(401, "Cannot perform this action")
-    }
-
     if (user.role === "STUDENT" && data.status !== "CANCELLED") {
         throw new ApiError(401, "Cannot perform this action")
     }
 
     if (user.role === "TUTOR" && data.status !== "COMPLETED") {
+        throw new ApiError(401, "Cannot perform this action")
+    }
+
+    const tutor = await prisma.tutorProfile.findUnique({ where: { userId: user.userId } })
+    if (!tutor) throw new ApiError(400, "Invalid User ID")
+
+    if (booking.studentId !== user.userId && booking.tutorProfileId !== tutor.id) {
         throw new ApiError(401, "Cannot perform this action")
     }
 

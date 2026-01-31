@@ -19,3 +19,21 @@ export const createReviewService = async (userId: string, data: z.infer<typeof R
     })
     return review
 };
+
+export const deleteReviewService = async (userId: string, reviewId: string) => {
+    const review = await prisma.review.findUnique({
+        where: {
+            id: reviewId
+        }
+    })
+
+    if (!review) throw new ApiError(404, "Review not found")
+    if (review.studentId !== userId) throw new ApiError(403, "You are not authorized to delete this review")
+
+    await prisma.review.delete({
+        where: {
+            id: reviewId
+        }
+    })
+    return review
+};
