@@ -5,8 +5,33 @@ import { ApiError } from "../../utils/ApiError";
 import type { JwtPayload } from "../../types/jwtPayload";
 
 export const createBookingsService = async (data: z.infer<typeof BookingSchema>) => {
-    await prisma.booking.create({
-        data: data
+    const slot = await prisma.availabilitySlot.findFirst({
+        where: {
+            tutorProfileId: data.tutorProfileId,
+            startTime: data.startTime,
+            endTime: data.endTime
+        },
+        select: {
+            id: true,
+            isBooked: true
+        }
+    })
+    if (!slot) throw new ApiError(400, "Invalid Slot")
+    if (slot.isBooked) throw new ApiError(400, "Slot is already booked")
+
+    await prisma.$transaction(async tx => {
+        await tx.booking.create({
+            data: data
+        })
+
+        await tx.availabilitySlot.update({
+            where: {
+                id: slot.id
+            },
+            data: {
+                isBooked: true
+            }
+        })
     })
 };
 
