@@ -126,6 +126,11 @@ export const updateUserProfileService = async (userId: string, data: Partial<Use
     if (!user) throw new ApiError(400, "User not found")
     if (user.id !== userId) throw new ApiError(401, "Cannot perform this action")
 
+    if (user.email) {
+        const existingUser = await prisma.user.findUnique({ where: { email: data.email! } })
+        if (existingUser && existingUser.id !== userId) throw new ApiError(400, "Email already exists")
+    }
+
     const result = await prisma.user.update({
         data: {
             ...data
