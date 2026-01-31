@@ -1,7 +1,19 @@
 import type { NextFunction, Request, Response } from "express";
-import { getUserProfileService, getUserStatsService, updateUserProfileService } from "./user.service";
-import { UpdateUserSchema, UserSchema } from "../auth/auth.schema";
 import type { User } from "../../generated/prisma/client";
+import { UpdateUserSchema } from "../auth/auth.schema";
+import { getHomeStatsService, getUserProfileService, getUserStatsService, updateUserProfileService } from "./user.service";
+
+export const getHomeStatsController = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const result = await getHomeStatsService()
+        res.json({
+            success: true,
+            data: result
+        })
+    } catch (error) {
+        next(error)
+    }
+}
 
 export const getUserProfileController = async (req: Request, res: Response, next: NextFunction) => {
     try {

@@ -2,6 +2,34 @@ import type { User } from "../../generated/prisma/client";
 import prisma from "../../lib/prisma";
 import { ApiError } from "../../utils/ApiError";
 
+export const getHomeStatsService = async () => {
+    const categories = await prisma.category.findMany()
+    const featuredTutors = await prisma.tutorProfile.findMany({
+        take: 3,
+        where: {
+            user: { isBanned: false }
+        },
+        orderBy: {
+            bookings: {
+                _count: 'desc'
+            }
+        },
+        include: {
+            user: true,
+            category: true,
+            reviews: { select: { rating: true, id: true } }
+        }
+    })
+    const totalStudents = await prisma.user.count({ where: { role: 'STUDENT' } })
+    const totalTutors = await prisma.user.count({ where: { role: 'TUTOR' } })
+    return {
+        categories,
+        featuredTutors,
+        totalStudents,
+        totalTutors
+    }
+}
+
 export const getUserProfileService = async (userId: string) => {
     const user = await prisma.user.findUnique({
         where: { id: userId },
