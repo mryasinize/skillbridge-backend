@@ -37,7 +37,7 @@ export const getTutorsService = async (filters: QueryFilter) => {
         include: {
             user: true,
             category: true,
-            reviews: true,
+            reviews: { select: { rating: true, id: true } },
             availabilitySlots: true
         }
     })
