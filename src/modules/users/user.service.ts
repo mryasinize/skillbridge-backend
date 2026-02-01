@@ -64,27 +64,24 @@ export const getUserStatsService = async (userId: string, role: string) => {
 
         const myBookings = tutor.bookings;
         const completedBookings = myBookings.filter(b => b.status === 'COMPLETED');
-
-        let totalHours = 0;
-        completedBookings.forEach(b => {
-            totalHours += (new Date(b.endTime).getTime() - new Date(b.startTime).getTime()) / (1000 * 60 * 60);
-        });
+        const totalHours = completedBookings.reduce((acc, b) => acc + (new Date(b.endTime).getTime() - new Date(b.startTime).getTime()) / (1000 * 60 * 60), 0);
+        const upcomingSessions = myBookings
+            .filter(b => b.status === 'CONFIRMED' && new Date(b.startTime) > now)
+            .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
+            .slice(0, 3)
+            .map(b => ({
+                id: b.id,
+                studentName: b.student.name,
+                startTime: b.startTime,
+                endTime: b.endTime
+            }));
 
         return {
             totalStudents: new Set(myBookings.map(b => b.studentId)).size,
             hoursTaught: Math.round(totalHours * 10) / 10,
             totalEarnings: Math.round(totalHours * tutor.hourlyRate),
             averageRating: tutor.reviews.length > 0 ? tutor.reviews.reduce((acc, r) => acc + r.rating, 0) / tutor.reviews.length : 0,
-            upcomingSessions: myBookings
-                .filter(b => b.status === 'CONFIRMED' && new Date(b.startTime) > now)
-                .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
-                .slice(0, 3)
-                .map(b => ({
-                    id: b.id,
-                    studentName: b.student.name,
-                    startTime: b.startTime,
-                    endTime: b.endTime
-                }))
+            upcomingSessions: upcomingSessions
         };
     }
 
@@ -95,26 +92,24 @@ export const getUserStatsService = async (userId: string, role: string) => {
         });
 
         const completedBookings = bookings.filter(b => b.status === 'COMPLETED');
-        let totalHours = 0;
-        completedBookings.forEach(b => {
-            totalHours += (new Date(b.endTime).getTime() - new Date(b.startTime).getTime()) / (1000 * 60 * 60);
-        });
-
-        const nextSession = bookings
+        const totalHours = completedBookings.reduce((acc, b) => acc + (new Date(b.endTime).getTime() - new Date(b.startTime).getTime()) / (1000 * 60 * 60), 0);
+        const nextSessions = bookings
             .filter(b => b.status === 'CONFIRMED' && new Date(b.startTime) > now)
-            .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())[0];
+            .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
+            .slice(0, 3)
+            .map(b => ({
+                id: b.id,
+                title: b.category?.name || "Tutoring Session",
+                tutorName: b.tutor.user.name,
+                startTime: b.startTime,
+                endTime: b.endTime
+            }));
 
         return {
             activeBookings: bookings.filter(b => b.status === 'CONFIRMED').length,
             completedHours: Math.round(totalHours * 10) / 10,
             learningPoints: completedBookings.length * 50,
-            nextSession: nextSession ? {
-                id: nextSession.id,
-                title: nextSession.category?.name || "Tutoring Session",
-                tutorName: nextSession.tutor.user.name,
-                startTime: nextSession.startTime,
-                endTime: nextSession.endTime
-            } : null
+            nextSessions: nextSessions
         };
     }
 
