@@ -19,6 +19,16 @@ export const createBookingsService = async (data: z.infer<typeof BookingSchema>)
     if (!slot) throw new ApiError(400, "Invalid Slot")
     if (slot.isBooked) throw new ApiError(400, "Slot is already booked")
 
+    const existingBooking = await prisma.booking.findFirst({
+        where: {
+            studentId: data.studentId,
+            status: "CONFIRMED",
+            startTime: { lt: data.endTime },
+            endTime: { gt: data.startTime }
+        }
+    })
+    if (existingBooking) throw new ApiError(400, "Booking Conflict: You already have another session scheduled during this time. Please check your dashboard and pick a different slot.")
+
     await prisma.$transaction(async tx => {
         await tx.booking.create({
             data: data
