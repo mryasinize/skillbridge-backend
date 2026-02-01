@@ -78,23 +78,11 @@ export const createAvailabilitySlotService = async (userId: string, data: z.infe
     const slot = await prisma.availabilitySlot.findFirst({
         where: {
             tutorProfileId: tutor.id,
-            OR: [
-                {
-                    startTime: { lte: data.startTime },
-                    endTime: { gt: data.startTime },
-                },
-                {
-                    startTime: { lt: data.endTime },
-                    endTime: { gte: data.endTime },
-                },
-                {
-                    startTime: { gte: data.startTime },
-                    endTime: { lte: data.endTime },
-                }
-            ]
+            startTime: { lt: data.endTime },
+            endTime: { gt: data.startTime }
         }
     })
-    if (slot) throw new ApiError(409, "Conflict Detected: You already have a session scheduled during this time. Please pick a different slot.")
+    if (slot) throw new ApiError(409, "Schedule Conflict: This time slot overlaps with an existing session in your calendar. Please pick a different slot.")
 
     await prisma.availabilitySlot.create({
         data: {
