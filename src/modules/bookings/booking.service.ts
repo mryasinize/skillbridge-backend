@@ -16,7 +16,7 @@ export const createBookingsService = async (data: z.infer<typeof BookingSchema>)
             isBooked: true
         }
     })
-    if (!slot) throw new ApiError(400, "Invalid Slot")
+    if (!slot) throw new ApiError(400, "Invalid Time Slot: The selected time slot is no longer available. Please refresh the page and try again.")
     if (slot.isBooked) throw new ApiError(400, "Slot is already booked")
 
     const existingBooking = await prisma.booking.findFirst({
@@ -83,10 +83,17 @@ export const changeBookingStatusService = async (user: JwtPayload, bookingId: st
         throw new ApiError(401, "Cannot perform this action")
     }
 
-    const tutor = await prisma.tutorProfile.findUnique({ where: { userId: user.userId } })
-    if (!tutor) throw new ApiError(400, "Invalid User ID")
+    if (data.status === "CANCELLED" && booking.status === "COMPLETED") {
+        throw new ApiError(400, "Cannot cancel a completed booking")
+    }
 
-    if (booking.studentId !== user.userId && booking.tutorProfileId !== tutor.id) {
+    if (data.status === "COMPLETED" && booking.status === "CANCELLED") {
+        throw new ApiError(400, "Cannot complete a cancelled booking")
+    }
+
+    const tutor = await prisma.tutorProfile.findUnique({ where: { userId: user.userId } })
+
+    if (booking.studentId !== user.userId && booking.tutorProfileId !== tutor?.id) {
         throw new ApiError(401, "Cannot perform this action")
     }
 
